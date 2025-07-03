@@ -16,7 +16,6 @@ module.exports = async (req, res) => {
       emailId,
       ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
       userAgent: req.headers["user-agent"],
-      type, // Log the image type
       time: new Date().toISOString(),
     };
 
