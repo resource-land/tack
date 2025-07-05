@@ -29,13 +29,7 @@ module.exports = async (req, res) => {
     }
 
     // Serve different images based on 'type'
-  let imageFile = "pixel.png";
-  if (type === "alt")
-    imageFile = "pixel-alt.png";
-  else if (type === "protest")
-    imageFile = "pixel-protest.png";
-
-    
+    const imageFile = type === "alt" ? "pixel-alt.png" : "pixel.png";
     const imgPath = path.join(__dirname, "..", imageFile);
 
     if (!fs.existsSync(imgPath)) {
