@@ -11,8 +11,6 @@ const imageMap = {
   default: "pixel.png",
   alt: "pixel-alt.png",
   protest: "pixel-protest.png",
-  red: "pixel-red.png",
-  green: "pixel-green.png",
   // Add more types as needed
 };
 
@@ -36,7 +34,7 @@ module.exports = async (req, res) => {
       console.log("Logged entry:", logEntry);
     }
 
-    // Safe fallback for imageFile
+    // Resolve image file
     const imageFile = imageMap[type] || imageMap["default"];
     const imgPath = path.join(__dirname, "..", imageFile);
 
