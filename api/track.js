@@ -7,6 +7,15 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
 );
 
+const imageMap = {
+  default: "pixel.png",
+  alt: "pixel-alt.png",
+  protest: "pixel-protest.png",
+  red: "pixel-red.png",
+  green: "pixel-green.png",
+  // Add more types here as needed
+};
+
 module.exports = async (req, res) => {
   try {
     const emailId = req.query.emailId || "unknown";
@@ -29,7 +38,9 @@ module.exports = async (req, res) => {
     }
 
     // Serve different images based on 'type'
-    const imageFile = type === "alt" ? "pixel-alt.png" : "pixel.png";
+    const imageFile = imageMap[type];
+    //const imgPath = path.join(__dirname, "..", imageFile);
+    //const imageFile = type === "alt" ? "pixel-alt.png" : "pixel.png";
     const imgPath = path.join(__dirname, "..", imageFile);
     console.log(imageFile, " path is: ", imgPath);
 
