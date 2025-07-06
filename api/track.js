@@ -36,8 +36,9 @@ module.exports = async (req, res) => {
       console.log("Logged entry:", logEntry);
     }
 
+    // Safe fallback for imageFile
     const imageFile = imageMap[type] || imageMap["default"];
-    const imgPath = path.join(__dirname, imageFile);
+    const imgPath = path.join(__dirname, "..", imageFile);
 
     console.log("__dirname:", __dirname);
     console.log("imageFile:", imageFile);
