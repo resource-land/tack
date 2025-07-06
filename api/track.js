@@ -31,6 +31,7 @@ module.exports = async (req, res) => {
     // Serve different images based on 'type'
     const imageFile = type === "alt" ? "pixel-alt.png" : "pixel.png";
     const imgPath = path.join(__dirname, "..", imageFile);
+    console.log(imageFile, " path is: ", imgPath);
 
     if (!fs.existsSync(imgPath)) {
       return res.status(404).send("Image not found");
