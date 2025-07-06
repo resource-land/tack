@@ -19,7 +19,7 @@ const imageMap = {
 module.exports = async (req, res) => {
   try {
     const emailId = req.query.emailId || "unknown";
-    const type = req.query.type || "default"; // NEW: Add a type param to decide which image to serve
+    const type = req.query.type || "default";
 
     const logEntry = {
       emailId,
@@ -37,10 +37,8 @@ module.exports = async (req, res) => {
       console.log("Logged entry:", logEntry);
     }
 
-    // Serve different images based on 'type'
-    const imageFile = imageMap[type];
-    //const imgPath = path.join(__dirname, "..", imageFile);
-    //const imageFile = type === "alt" ? "pixel-alt.png" : "pixel.png";
+    // Fallback to 'default' if type is not in imageMap
+    const imageFile = imageMap[type] || imageMap["default"];
     const imgPath = path.join(__dirname, "..", imageFile);
     console.log(imageFile, " path is: ", imgPath);
 
@@ -51,6 +49,7 @@ module.exports = async (req, res) => {
     const img = fs.readFileSync(imgPath);
     res.setHeader("Content-Type", "image/png");
     return res.status(200).send(img);
+    
   } catch (err) {
     console.error("Handler Error:", err);
     return res.status(500).send("Internal Server Error");
