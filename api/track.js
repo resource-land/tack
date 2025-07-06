@@ -11,7 +11,7 @@ const supabase = createClient(
 const imageMap = {
   default: "pixel.png",
   alt: "pixel-alt.png",
-  protest: "pixel-blue.png",
+  protest: "pixel-protest.png",
   red: "pixel-red.png",
   green: "pixel-green.png",
   // Add more types here as needed
@@ -41,6 +41,7 @@ module.exports = async (req, res) => {
     // Lookup the image file based on type
     const imageFile = imageMap[type] || imageMap["default"];
     const imgPath = path.join(__dirname, "..", imageFile);
+    console.log(imageFile," Image path is: ",imgPath)
 
     if (!fs.existsSync(imgPath)) {
       return res.status(404).send("Image not found");
