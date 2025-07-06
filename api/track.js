@@ -13,7 +13,7 @@ const imageMap = {
   protest: "pixel-protest.png",
   red: "pixel-red.png",
   green: "pixel-green.png",
-  // Add more types here as needed
+  // Add more types as needed
 };
 
 module.exports = async (req, res) => {
@@ -28,7 +28,6 @@ module.exports = async (req, res) => {
       time: new Date().toISOString(),
     };
 
-    // Save to Supabase
     const { error } = await supabase.from("logs").insert([logEntry]);
 
     if (error) {
@@ -37,19 +36,22 @@ module.exports = async (req, res) => {
       console.log("Logged entry:", logEntry);
     }
 
-    // Fallback to 'default' if type is not in imageMap
     const imageFile = imageMap[type] || imageMap["default"];
-    const imgPath = path.join(__dirname, "..", imageFile);
-    console.log(imageFile, " path is: ", imgPath);
+    const imgPath = path.join(__dirname, imageFile);
+
+    console.log("__dirname:", __dirname);
+    console.log("imageFile:", imageFile);
+    console.log("imgPath:", imgPath);
 
     if (!fs.existsSync(imgPath)) {
+      console.error("Image not found at path:", imgPath);
       return res.status(404).send("Image not found");
     }
 
     const img = fs.readFileSync(imgPath);
     res.setHeader("Content-Type", "image/png");
     return res.status(200).send(img);
-    
+
   } catch (err) {
     console.error("Handler Error:", err);
     return res.status(500).send("Internal Server Error");
