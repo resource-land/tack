@@ -17,6 +17,21 @@ module.exports = async (req, res) => {
     console.log("Successfully connectd", logs)
   }
 
+    const { count, error: countError } = await supabase
+    .from("logs")
+    .select("emailId", { count: "exact", head: true })
+    .eq("tag", "unhcr")
+    .neq("emailId", null)
+    .distinct();
+
+  if (countError) {
+    console.error(countError);
+    return res.status(500).send("Failed to count distinct emailIds");
+  }
+
+  console.log("Distinct email count:", count);
+
+
   const html = `
     <html>
     <head>
@@ -30,6 +45,7 @@ module.exports = async (req, res) => {
     </head>
     <body>
       <h2>📬 Email Open Logs (from Supabase)</h2>
+      <p><strong>Total email open from inbox:</strong> ${count} out of 1470 (${(count/1470)*100}%)</p>
       <table>
         <tr><th>Email ID</th><th>IP</th><th>User-Agent</th><th>Time</th></tr>
         ${logs.map(l => `
