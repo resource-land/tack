@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
       ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
       userAgent: req.headers["user-agent"],
       time: new Date().toISOString(),
+      tag: type,
     };
 
     // Save to Supabase
@@ -29,7 +30,7 @@ module.exports = async (req, res) => {
     }
 
     // Serve different images based on 'type'
-    const imageFile = type === "alt" ? "pixel-poster.png" : "pixel.png";
+    const imageFile = type === "unhcr" ? "unhcr.png" : "pixel.png";
     const imgPath = path.join(__dirname, "..", imageFile);
 
     if (!fs.existsSync(imgPath)) {
