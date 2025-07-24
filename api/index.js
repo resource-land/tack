@@ -17,17 +17,19 @@ module.exports = async (req, res) => {
     console.log("Successfully connectd", logs)
   }
 
-    const { count, error: countError } = await supabase
+    const { data: emailData, error: countError } = await supabase
     .from("logs")
-    .select("emailId", { count: "exact", head: true })
+    .select("emailId") // Just select the emailId column
     .eq("tag", "unhcr")
-    .neq("emailId", null)
-    .distinct();
+    .neq("emailId", null);
 
   if (countError) {
     console.error(countError);
     return res.status(500).send("Failed to count distinct emailIds");
   }
+
+  // 2. Count the unique emailIds using a Set
+  const count = new Set(emailData.map(log => log.emailId)).size;
 
   console.log("Distinct email count:", count);
 
