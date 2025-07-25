@@ -1,5 +1,20 @@
 const fs = require("fs");
 const path = require("path");
+
+// --- Vercel Build Trick ---
+// This block's only purpose is to force the Vercel bundler to include these files.
+// It tells the build system that these files are dependencies.
+try {
+  fs.readFileSync(path.join(__dirname, 'unhcr.png'));
+  fs.readFileSync(path.join(__dirname, 'milestone.png'));
+  fs.readFileSync(path.join(__dirname, 'pixel.png'));
+} catch (e) {
+  // This block might show an error in a local terminal, which is okay.
+  // It's not meant to run successfully, only to guide the Vercel deployment.
+}
+// --- End of Trick ---
+
+
 const { createClient } = require("@supabase/supabase-js");
 
 const supabase = createClient(
@@ -7,14 +22,13 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
 );
 
-// This configuration now matches your files exactly.
+// This configuration matches your file structure screenshot
 const imageConfig = {
   unhcr: "unhcr.png",
-  milestone: "milestone.png", // Corrected key from "mileston" to "milestone"
+  milestone: "milestone.png",
   pixel: "pixel.png",
 };
 
-// Use "pixel.png" as the fallback since it exists in your project.
 const defaultImageFile = "pixel.png";
 
 module.exports = async (req, res) => {
@@ -30,18 +44,16 @@ module.exports = async (req, res) => {
       tag: type,
     };
 
-    // Save log to database
     await supabase.from("logs").insert([logEntry]);
 
     const imageFile = imageConfig[type] || defaultImageFile;
     const imgPath = path.join(__dirname, imageFile);
 
     if (!fs.existsSync(imgPath)) {
-      console.error(`CRITICAL: Image file not found at path: ${imgPath}`);
-      return res.status(404).send(`Image file "${imageFile}" not found on server.`);
+      console.error(`CRITICAL: The file system check failed for path: ${imgPath}`);
+      return res.status(500).send(`Server error: Image file "${imageFile}" was not found in the deployment. Please check build logs.`);
     }
-    
-    // Determine Content-Type automatically
+
     const getMimeType = (file) => {
       switch (path.extname(file).toLowerCase()) {
         case ".png": return "image/png";
