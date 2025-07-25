@@ -7,15 +7,15 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
 );
 
-// Define your mapping of types to filenames
+// This configuration now matches your files exactly.
 const imageConfig = {
   unhcr: "unhcr.png",
-  mileston: "milestone.png",
-  // Add more types and their corresponding image files here
+  milestone: "milestone.png", // Corrected key from "mileston" to "milestone"
+  pixel: "pixel.png",
 };
 
-// A fallback image in case the type is not found
-const defaultImageFile = "milestone.png"; // Or a dedicated 1x1 pixel
+// Use "pixel.png" as the fallback since it exists in your project.
+const defaultImageFile = "pixel.png";
 
 module.exports = async (req, res) => {
   try {
@@ -33,14 +33,12 @@ module.exports = async (req, res) => {
     // Save log to database
     await supabase.from("logs").insert([logEntry]);
 
-    // --- The only line that really changes is below ---
     const imageFile = imageConfig[type] || defaultImageFile;
-    // The path is simpler now because the images are in the same directory.
     const imgPath = path.join(__dirname, imageFile);
 
     if (!fs.existsSync(imgPath)) {
-      // This error shouldn't happen if you moved the files correctly
-      return res.status(404).send("Image not found");
+      console.error(`CRITICAL: Image file not found at path: ${imgPath}`);
+      return res.status(404).send(`Image file "${imageFile}" not found on server.`);
     }
     
     // Determine Content-Type automatically

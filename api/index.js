@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
         },
         milestone: {
             displayName: "Mileston Project",
-            totalSent: 850
+            totalSent: 1490
         },
     };
 
@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
         summaryStats[tag] = `
             <li>
                 <strong>${config.displayName}:</strong> 
-                ${uniqueOpenCount} unique opens out of ${config.totalSent} sent (${openRate.toFixed(2)}%)
+                ${uniqueOpenCount} opens from inbox out of ${config.totalSent} sent (${openRate.toFixed(2)}%)
             </li>`;
             
         // Store detailed logs for the dropdown
