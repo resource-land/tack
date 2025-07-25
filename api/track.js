@@ -19,7 +19,7 @@ const imageConfig = {
 };
 
 // 2. Specify a fallback image in case an unknown type is requested.
-const defaultImageFile = "default_pixel.png"; // A 1x1 transparent pixel is recommended
+const defaultImageFile = "pixel.png"; // A 1x1 transparent pixel is recommended
 
 module.exports = async (req, res) => {
   try {
