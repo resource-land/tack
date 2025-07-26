@@ -24,10 +24,10 @@ module.exports = async (req, res) => {
     const campaignConfig = {
         unhcr: {
             displayName: "UNHCR Campaign",
-            totalSent: 1470
+            totalSent: 2970
         },
         milestone: {
-            displayName: "Mileston Project",
+            displayName: "Mileston Campaign",
             totalSent: 1490
         },
     };
