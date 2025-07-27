@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
     const campaignConfig = {
         unhcr: {
             displayName: "UNHCR Campaign",
-            totalSent: 2970
+            totalSent: 3700
         },
         milestone: {
             displayName: "Mileston Campaign",
