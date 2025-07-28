@@ -1,22 +1,60 @@
-const fs = require("fs");
-const path = require("path");
-
 const { createClient } = require("@supabase/supabase-js");
 
 // Your Supabase credentials
 const supabase = createClient(
-    "https://khvjvzshyhfoookboaqf.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
+    "https://khvjvzshyhfoookboaqf.supabase.co", 
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
 );
 
-module.exports = async (req, res) => {
-    // 1. Fetch all logs from the database, sorted by most recent time first
-    const { data: logs, error } = await supabase
-        .from("logs")
-        .select("*")
-        .order("time", { ascending: false });
+/**
+ * Fetches all logs from the 'logs' table by paginating through the results.
+ * This is necessary because Supabase limits queries to 1000 rows by default.
+ * @returns {Promise<Array>} A promise that resolves to an array of all log objects.
+ */
+async function fetchAllLogs() {
+    const allLogs = [];
+    const pageSize = 1000;
+    let page = 0;
+    let hasMore = true;
 
-    if (error) {
-        console.error(error);
+    while (hasMore) {
+        const { data, error } = await supabase
+            .from('logs')
+            // Only select the columns you actually need for better performance
+            .select('tag, emailId, time')
+            .order('time', { ascending: false })
+            .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (error) {
+            console.error("Error fetching logs:", error);
+            // Stop fetching on error
+            hasMore = false; 
+            // Depending on your needs, you might want to throw the error
+            // throw error; 
+            return [];
+        }
+
+        if (data && data.length > 0) {
+            allLogs.push(...data);
+            page++;
+            if (data.length < pageSize) {
+                // This was the last page
+                hasMore = false;
+            }
+        } else {
+            // No more data to fetch
+            hasMore = false;
+        }
+    }
+    return allLogs;
+}
+
+
+module.exports = async (req, res) => {
+    // 1. Fetch ALL logs from the database using our new paginating function
+    const logs = await fetchAllLogs();
+
+    if (!logs) {
         return res.status(500).send("Failed to load logs");
     }
 
@@ -24,7 +62,7 @@ module.exports = async (req, res) => {
     const campaignConfig = {
         unhcr: {
             displayName: "UNHCR Campaign",
-            totalSent: 3700
+            totalSent: 5230
         },
         milestone: {
             displayName: "Mileston Campaign",
@@ -32,22 +70,19 @@ module.exports = async (req, res) => {
         },
     };
 
-    // --- DATA PROCESSING ---
+    // --- DATA PROCESSING (This part is now correct because `logs` is complete) ---
 
-    // Object to hold summary stats
     const summaryStats = {};
-    // Object to hold the detailed list of unique emails per tag
     const uniqueLogsByTag = {};
 
-    // Process data for each configured campaign
     for (const tag in campaignConfig) {
         const config = campaignConfig[tag];
         
-        // Filter logs for the current tag
+        // Filter logs for the current tag, excluding those with no emailId
         const tagLogs = logs.filter(log => log.tag === tag && log.emailId);
         
-        // Use a Map to easily get unique emails and their most recent time
-        // Since the logs are sorted descending by time, the first entry we find for an email is the latest one.
+        // Use a Map to get unique emails and their most recent time.
+        // Since logs are sorted descending by time, the first entry is the latest.
         const uniqueEmails = new Map();
         for (const log of tagLogs) {
             if (!uniqueEmails.has(log.emailId)) {
@@ -65,7 +100,7 @@ module.exports = async (req, res) => {
                 ${uniqueOpenCount} opens from inbox out of ${config.totalSent} sent (${openRate.toFixed(2)}%)
             </li>`;
             
-        // Store detailed logs for the dropdown
+        // Store detailed logs for the dropdown functionality
         uniqueLogsByTag[tag] = Array.from(uniqueEmails, ([emailId, time]) => ({ emailId, time }));
     }
 
@@ -82,10 +117,9 @@ module.exports = async (req, res) => {
             li { background: #eaf6ff; margin-bottom: 8px; padding: 10px; border-left: 4px solid #005a9c; }
             select { font-size: 16px; padding: 8px; margin-top: 10px; }
             #email-list-container { margin-top: 20px; }
-            table { border-collapse: collapse; width: 100%; }
+            table { border-collapse: collapse; width: 100%; max-width: 700px; }
             th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
             th { background: #f2f2f2; }
-            /* Hide the table initially */
             #email-table { display: none; }
         </style>
     </head>
@@ -111,7 +145,7 @@ module.exports = async (req, res) => {
                     <tr><th>Email ID</th><th>Last Opened At</th></tr>
                 </thead>
                 <tbody id="email-table-body">
-                    </tbody>
+                </tbody>
             </table>
         </div>
 
@@ -123,11 +157,9 @@ module.exports = async (req, res) => {
                 const table = document.getElementById('email-table');
                 const tableBody = document.getElementById('email-table-body');
                 
-                // Clear previous results
                 tableBody.innerHTML = '';
 
                 if (!tag || !emailDataByTag[tag]) {
-                    // Hide table if no tag is selected
                     table.style.display = 'none';
                     return;
                 }
@@ -135,7 +167,7 @@ module.exports = async (req, res) => {
                 const emails = emailDataByTag[tag];
                 
                 if (emails.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="2">No opens recorded for this campaign.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="2">No unique opens recorded for this campaign.</td></tr>';
                 } else {
                     emails.forEach(log => {
                         const row = tableBody.insertRow();
@@ -143,12 +175,10 @@ module.exports = async (req, res) => {
                         const cell2 = row.insertCell(1);
                         
                         cell1.textContent = log.emailId;
-                        // Format the timestamp for better readability
+                        // Format the timestamp for better readability in the user's local timezone
                         cell2.textContent = new Date(log.time).toLocaleString();
                     });
                 }
-
-                // Show the table
                 table.style.display = 'table';
             }
         </script>
