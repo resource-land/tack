@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
         },
         usaTarif: {
             displayName: "USA tarif Campaign",
-            totalSent: 6000
+            totalSent: 7500
         },
     };
 
