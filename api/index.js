@@ -72,6 +72,10 @@ module.exports = async (req, res) => {
             displayName: "USA tarif Campaign",
             totalSent: 7500
         },
+        auguest:{
+            displayName: "5 auguest, july declaration",
+            totalSent: 7500 
+        },
     };
 
     // --- DATA PROCESSING (This part is now correct because `logs` is complete) ---
