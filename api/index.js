@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
         },
         auguest:{
             displayName: "5 auguest, july declaration",
-            totalSent: 1500 
+            totalSent: 3000 
         },
     };
 
