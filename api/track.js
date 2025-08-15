@@ -32,6 +32,7 @@ const imageConfig = {
   pixel: "pixel.png",
   usaTarif: "USA_tarif.png",
   auguest: 'Auguest.png',
+  failureGovt: 'FailureGovt.png',
   onePixel: 'onePixel.png',
 };
 
