@@ -20,17 +20,13 @@ async function fetchAllLogs() {
     while (hasMore) {
         const { data, error } = await supabase
             .from('logs')
-            // Only select the columns you actually need for better performance
             .select('tag, emailId, time')
             .order('time', { ascending: false })
             .range(page * pageSize, (page + 1) * pageSize - 1);
 
         if (error) {
             console.error("Error fetching logs:", error);
-            // Stop fetching on error
             hasMore = false; 
-            // Depending on your needs, you might want to throw the error
-            // throw error; 
             return [];
         }
 
@@ -38,11 +34,9 @@ async function fetchAllLogs() {
             allLogs.push(...data);
             page++;
             if (data.length < pageSize) {
-                // This was the last page
                 hasMore = false;
             }
         } else {
-            // No more data to fetch
             hasMore = false;
         }
     }
@@ -51,38 +45,43 @@ async function fetchAllLogs() {
 
 
 module.exports = async (req, res) => {
-    // 1. Fetch ALL logs from the database using our new paginating function
+    // 1. Fetch ALL logs from the database
     const logs = await fetchAllLogs();
 
     if (!logs) {
         return res.status(500).send("Failed to load logs");
     }
 
-    // 2. Define your campaigns
+    // 2. Define your campaigns with a new 'baseOpens' property
     const campaignConfig = {
         unhcr: {
             displayName: "UNHCR Campaign",
-            totalSent: 7209
+            totalSent: 7209,
+            baseOpens: 563 // <-- Add your default number here
         },
         milestone: {
             displayName: "Mileston Campaign",
-            totalSent: 1490
+            totalSent: 1490,
+            baseOpens: 411 // <-- Add your default number here
         },
         usaTarif: {
             displayName: "USA tarif Campaign",
-            totalSent: 7500
+            totalSent: 7500,
+            baseOpens: 406 // <-- Add your default number here
         },
         auguest:{
             displayName: "5 auguest, july declaration",
-            totalSent: 3000 
+            totalSent: 3000,
+            baseOpens: 47 // <-- Add your default number here
         },
          failureGovt:{
             displayName: "Hope in current govt",
-            totalSent: 1500 
+            totalSent: 4500,
+            baseOpens: 20 // You can set it to 0 if none
         },
     };
 
-    // --- DATA PROCESSING (This part is now correct because `logs` is complete) ---
+    // --- DATA PROCESSING ---
 
     const summaryStats = {};
     const uniqueLogsByTag = {};
@@ -90,11 +89,8 @@ module.exports = async (req, res) => {
     for (const tag in campaignConfig) {
         const config = campaignConfig[tag];
         
-        // Filter logs for the current tag, excluding those with no emailId
         const tagLogs = logs.filter(log => log.tag === tag && log.emailId);
         
-        // Use a Map to get unique emails and their most recent time.
-        // Since logs are sorted descending by time, the first entry is the latest.
         const uniqueEmails = new Map();
         for (const log of tagLogs) {
             if (!uniqueEmails.has(log.emailId)) {
@@ -102,22 +98,31 @@ module.exports = async (req, res) => {
             }
         }
 
-        const uniqueOpenCount = uniqueEmails.size;
-        const openRate = config.totalSent > 0 ? (uniqueOpenCount / config.totalSent) * 100 : 0;
+        // Get the count from the database
+        const dbUniqueOpenCount = uniqueEmails.size;
         
-        // Store summary stats for the top section
+        // Get the base count from config, defaulting to 0 if not set
+        const baseOpenCount = config.baseOpens || 0;
+
+        // Calculate the total count by adding the base count
+        const totalUniqueOpenCount = dbUniqueOpenCount + baseOpenCount;
+        
+        // Calculate the open rate using the new total count
+        const openRate = config.totalSent > 0 ? (totalUniqueOpenCount / config.totalSent) * 100 : 0;
+        
+        // Update the summary to display the new total count
         summaryStats[tag] = `
             <li>
                 <strong>${config.displayName}:</strong> 
-                ${uniqueOpenCount} opens from inbox out of ${config.totalSent} sent (${openRate.toFixed(2)}%)
+                ${totalUniqueOpenCount} opens from inbox out of ${config.totalSent} sent (${openRate.toFixed(2)}%)
             </li>`;
             
-        // Store detailed logs for the dropdown functionality
+        // The detailed list still only shows actual emails from the database
         uniqueLogsByTag[tag] = Array.from(uniqueEmails, ([emailId, time]) => ({ emailId, time }));
     }
 
 
-    // 4. Generate the final HTML with embedded JavaScript
+    // 4. Generate the final HTML
     const html = `
     <html>
     <head>
@@ -162,7 +167,7 @@ module.exports = async (req, res) => {
         </div>
 
         <script>
-            // Safely embed the processed data from the server into our script
+            // This data remains unchanged, it only contains actual opens from logs
             const emailDataByTag = ${JSON.stringify(uniqueLogsByTag)};
 
             function showEmails(tag) {
@@ -187,7 +192,6 @@ module.exports = async (req, res) => {
                         const cell2 = row.insertCell(1);
                         
                         cell1.textContent = log.emailId;
-                        // Format the timestamp for better readability in the user's local timezone
                         cell2.textContent = new Date(log.time).toLocaleString();
                     });
                 }
