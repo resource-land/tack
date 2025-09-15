@@ -81,7 +81,12 @@ module.exports = async (req, res) => {
         },
         inviteCard:{
             displayName: "Bangladesh 2.0 Invite Card",
-            totalSent: 4616,
+            totalSent: 4872,
+            baseOpens: 0 // You can set it to 0 if none
+        },
+        invitationPr:{
+            displayName: "Bangladesh 2.0 Invite PR",
+            totalSent: 1000,
             baseOpens: 0 // You can set it to 0 if none
         },
     };

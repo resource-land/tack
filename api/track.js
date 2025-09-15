@@ -13,6 +13,7 @@ try {
   fs.readFileSync(path.join(__dirname, 'onePixel.png'));
   fs.readFileSync(path.join(__dirname, 'FailureGovt.png'));
   fs.readFileSync(path.join(__dirname, 'cardEng.png'));
+  fs.readFileSync(path.join(__dirname, 'invitation_pr.png'));
 } catch (e) {
   // This block might show an error in a local terminal, which is okay.
   // It's not meant to run successfully, only to guide the Vercel deployment.
@@ -37,6 +38,7 @@ const imageConfig = {
   failureGovt: 'FailureGovt.png',
   onePixel: 'onePixel.png',
   inviteCard: 'cardEng.png',
+  invitationPr: 'invitation_pr.png',
 };
 
 const defaultImageFile = "pixel.png";
