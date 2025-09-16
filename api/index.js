@@ -86,7 +86,7 @@ module.exports = async (req, res) => {
         },
         invitationPr:{
             displayName: "Bangladesh 2.0 Invite PR",
-            totalSent: 1000,
+            totalSent: 2805,
             baseOpens: 0 // You can set it to 0 if none
         },
     };
