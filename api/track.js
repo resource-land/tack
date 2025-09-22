@@ -2,8 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 // --- Vercel Build Trick ---
-// This block's only purpose is to force the Vercel bundler to include these files.
-// It tells the build system that these files are dependencies.
+// ADD your PDF file here to ensure it's included in the deployment.
 try {
   fs.readFileSync(path.join(__dirname, 'unhcr.png'));
   fs.readFileSync(path.join(__dirname, 'milestone.png'));
@@ -14,9 +13,9 @@ try {
   fs.readFileSync(path.join(__dirname, 'FailureGovt.png'));
   fs.readFileSync(path.join(__dirname, 'cardEng.png'));
   fs.readFileSync(path.join(__dirname, 'invitation_pr.png'));
+  fs.readFileSync(path.join(__dirname, 'conferenceBooklet.pdf')); // ADDED: Your new PDF file
 } catch (e) {
   // This block might show an error in a local terminal, which is okay.
-  // It's not meant to run successfully, only to guide the Vercel deployment.
 }
 // --- End of Trick ---
 
@@ -28,8 +27,8 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtodmp2enNoeWhmb29va2JvYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTIyNzIsImV4cCI6MjA2NjI2ODI3Mn0.FdOwlFP05seSbF69ErbFOyM3uO37Rul9vaLCX7bu0tg"
 );
 
-// This configuration matches your file structure screenshot
-const imageConfig = {
+// CHANGED: Renamed to fileConfig to handle any file type
+const fileConfig = {
   unhcr: "unhcr.png",
   milestone: "milestone.png",
   pixel: "pixel.png",
@@ -39,9 +38,11 @@ const imageConfig = {
   onePixel: 'onePixel.png',
   inviteCard: 'cardEng.png',
   invitationPr: 'invitation_pr.png',
+  report: 'conferenceBooklet.pdf', // ADDED: A key for your PDF
 };
 
-const defaultImageFile = "pixel.png";
+// Use a fallback image if the type is invalid
+const defaultFile = "pixel.png"; // CHANGED: Renamed for clarity
 
 module.exports = async (req, res) => {
   try {
@@ -54,14 +55,15 @@ module.exports = async (req, res) => {
       tag: type,
     };
 
+    // This logs the access attempt to your database
     await supabase.from("logs").insert([logEntry]);
 
-    const imageFile = imageConfig[type] || defaultImageFile;
-    const imgPath = path.join(__dirname, imageFile);
+    const fileName = fileConfig[type] || defaultFile; // CHANGED: Using the new config object
+    const filePath = path.join(__dirname, fileName);
 
-    if (!fs.existsSync(imgPath)) {
-      console.error(`CRITICAL: The file system check failed for path: ${imgPath}`);
-      return res.status(500).send(`Server error: Image file "${imageFile}" was not found in the deployment. Please check build logs.`);
+    if (!fs.existsSync(filePath)) {
+      console.error(`CRITICAL: The file system check failed for path: ${filePath}`);
+      return res.status(500).send(`Server error: File "${fileName}" was not found.`);
     }
 
     const getMimeType = (file) => {
@@ -69,13 +71,16 @@ module.exports = async (req, res) => {
         case ".png": return "image/png";
         case ".jpg": case ".jpeg": return "image/jpeg";
         case ".gif": return "image/gif";
+        case ".pdf": return "application/pdf"; // ADDED: Mime type for PDF
         default: return "application/octet-stream";
       }
     };
     
-    const img = fs.readFileSync(imgPath);
-    res.setHeader("Content-Type", getMimeType(imageFile));
-    return res.status(200).send(img);
+    const fileContents = fs.readFileSync(filePath);
+
+    // Set the correct Content-Type header so the browser knows how to handle the file
+    res.setHeader("Content-Type", getMimeType(fileName));
+    return res.status(200).send(fileContents);
 
   } catch (err) {
     console.error("Handler Error:", err);
