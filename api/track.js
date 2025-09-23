@@ -13,6 +13,7 @@ try {
   fs.readFileSync(path.join(__dirname, 'FailureGovt.png'));
   fs.readFileSync(path.join(__dirname, 'cardEng.png'));
   fs.readFileSync(path.join(__dirname, 'invitation_pr.png'));
+   fs.readFileSync(path.join(__dirname, 'army.png'));
   fs.readFileSync(path.join(__dirname, 'conferenceBooklet.pdf')); // ADDED: Your new PDF file
 } catch (e) {
   // This block might show an error in a local terminal, which is okay.
@@ -39,6 +40,7 @@ const fileConfig = {
   inviteCard: 'cardEng.png',
   invitationPr: 'invitation_pr.png',
   report: 'conferenceBooklet.pdf', // ADDED: A key for your PDF
+  army: 'army.png',
 };
 
 // Use a fallback image if the type is invalid
