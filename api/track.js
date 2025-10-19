@@ -42,7 +42,7 @@ const fileConfig = {
   invitationPr: 'invitation_pr.png',
   report: 'conferenceBooklet.pdf', // ADDED: A key for your PDF
   army: 'army.png',
-  julySanod: 'JulySanod.png'
+  sanod: 'JulySanod.png',
 };
 
 // Use a fallback image if the type is invalid
